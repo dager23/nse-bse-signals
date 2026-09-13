@@ -1,0 +1,12 @@
+# large research artifacts (regenerable; the site fetches live data)
+data/
+results/
+# build output
+_site/
+# local forward-test log (changes daily; kept local)
+forward_test/
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/

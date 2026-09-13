@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NSE / BSE Signals</title>
+<meta name="description" content="Daily rule-based stock baskets for Nifty 50 companies on NSE and BSE.">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#14181f; --muted:#697386; --line:#e3e6ec;
+    --accent:#2b5cd9; --accent-soft:#eaf0ff; --up:#0a7d4a; --dn:#c02525;
+    --warn-bg:#fff8e6; --warn-line:#f0d99b; --warn-ink:#7a5c12;
+    --chip:#f0f2f6; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.05);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1216; --card:#171b22; --ink:#e7eaf0; --muted:#98a1b3; --line:#262c37;
+      --accent:#6b91ff; --accent-soft:#1b2437; --up:#3ecf8e; --dn:#ff6b6b;
+      --warn-bg:#2a2312; --warn-line:#4d4225; --warn-ink:#e8cf90;
+      --chip:#222834; --shadow:none;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+  h1{font-size:20px;margin:0;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .mkt{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px}
+  .mkt b{font-weight:600}
+  .up{color:var(--up)} .dn{color:var(--dn)}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button,.btn{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);padding:8px 14px;text-decoration:none;display:inline-block}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{border:0;border-radius:0;padding:7px 13px;background:var(--card);color:var(--muted);font-weight:600}
+  .seg button.on{background:var(--accent);color:#fff}
+  nav{display:flex;gap:4px;margin:18px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+  nav button{border:0;background:none;border-radius:0;padding:9px 14px;white-space:nowrap;
+    color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
+  nav button.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;
+    background:var(--accent-soft);color:var(--accent);letter-spacing:.02em}
+  .tag.grey{background:var(--chip);color:var(--muted)}
+  .blurb{color:var(--muted);font-size:13px;margin:6px 0 12px}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:12px}
+  .stats b{color:var(--ink);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--chip);border:1px solid transparent;border-radius:8px;
+    padding:6px 10px;font-size:13px;display:flex;gap:7px;align-items:baseline}
+  .chip.new{border-color:var(--accent);background:var(--accent-soft)}
+  .chip .t{font-weight:600} .chip .p{color:var(--muted);font-size:12px}
+  .flat{color:var(--muted);font-style:italic;font-size:13px}
+  .exits{margin-top:10px;font-size:12px;color:var(--muted)}
+  .banner{background:var(--accent-soft);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:14px}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);
+    border-radius:10px;padding:12px 16px;font-size:13px;margin:16px 0}
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{height:6px;background:var(--accent);border-radius:3px;display:inline-block;vertical-align:middle}
+  .calc{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 14px;font-size:14px}
+  .calc input{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
+    background:var(--bg);color:var(--ink);width:160px}
+  .load{text-align:center;padding:56px 20px;color:var(--muted)}
+  footer{margin-top:28px;color:var(--muted);font-size:12px;line-height:1.65}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>NSE / BSE Strategy Signals</h1>
+      <div class="sub" id="sub">Loading…</div>
+    </div>
+    <div class="controls">
+      <div class="mkt" id="mkt"></div>
+      <div class="seg" role="group" aria-label="Exchange">
+        <button data-ex="NSE" class="on">NSE</button><button data-ex="BSE">BSE</button>
+      </div>
+      <a class="btn primary" id="regen" target="_blank" rel="noopener">Regenerate ↗</a>
+    </div>
+  </header>
+
+  <div id="stale" class="warn hide"></div>
+
+  <div class="warn">
+    <b>Research output, not investment advice.</b> Rule-based baskets from a
+    backtesting study. Figures shown are survivorship-corrected (point-in-time
+    index membership) and far more modest than raw backtests. Past results do
+    not predict future returns — you can lose money on any of these.
+  </div>
+
+  <nav>
+    <button data-tab="monthly" class="on">Monthly portfolio</button>
+    <button data-tab="daily">Today's signals</button>
+    <button data-tab="combined">Combined</button>
+  </nav>
+
+  <div id="loading" class="load">Loading today's signals…</div>
+  <div id="views" class="hide">
+    <div id="tab-monthly"></div>
+    <div id="tab-daily" class="hide"></div>
+    <div id="tab-combined" class="hide"></div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let DATA = null, TAB = 'monthly', EX = 'NSE', CAPITAL = 100000;
+
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+};
+EX = store.get('ex') === 'BSE' ? 'BSE' : 'NSE';
+CAPITAL = Number(store.get('capital')) || 100000;
+
+// Regenerate -> this repo's workflow page, derived from the Pages URL
+(function(){
+  let owner = 'dager23', repo = 'nse-bse-signals';
+  const host = location.hostname;
+  if (host.endsWith('.github.io')) {
+    owner = host.split('.')[0];
+    const seg = location.pathname.split('/').filter(Boolean)[0];
+    if (seg) repo = seg;
+  }
+  const a = $('#regen');
+  a.href = `https://github.com/${owner}/${repo}/actions/workflows/pages.yml`;
+  a.title = 'Opens GitHub Actions: click "Run workflow", wait ~3 minutes, then reload this page';
+})();
+
+const esc = s => String(s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
+
+function pct(v){
+  if (v === null || v === undefined) return '';
+  const c = v > 0 ? 'up' : (v < 0 ? 'dn' : '');
+  return `<span class="${c}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
+}
+
+// price on the selected exchange; BSE falls back to NSE (labelled) if missing
+function quote(h){
+  if (EX === 'BSE' && h.bse) return {price: h.bse.price, day: h.bse.day_pct, src: ''};
+  if (EX === 'BSE') return {price: h.price, day: h.day_pct, src: ' (NSE)'};
+  return {price: h.price, day: h.day_pct, src: ''};
+}
+
+function chip(h){
+  const q = quote(h);
+  const price = q.price !== null && q.price !== undefined ? inr(q.price) + q.src : '';
+  return `<div class="chip ${h.is_new ? 'new' : ''}">
+    <span class="t">${esc(h.ticker)}</span>
+    <span class="p">${price} ${pct(q.day)}</span>
+    ${h.is_new ? '<span class="tag">NEW</span>' : ''}</div>`;
+}
+
+function sleeveCard(s){
+  const monthly = s.kind === 'monthly';
+  const perf = s.pit_sharpe >= 0.5
+    ? '<span class="tag">survives PIT test</span>'
+    : '<span class="tag grey">weak on PIT data</span>';
+  const body = s.n
+    ? `<div class="chips">${s.holdings.map(chip).join('')}</div>`
+    : '<div class="flat">Currently flat — no positions signalled.</div>';
+  const exits = s.exits.length
+    ? `<div class="exits">${monthly ? 'Dropped at that rebalance' : 'Exited since previous session'}:
+       ${s.exits.map(esc).join(', ')}</div>` : '';
+  return `<div class="card">
+    <h3>${esc(s.label)} ${perf}</h3>
+    <div class="blurb">${esc(s.blurb)}</div>
+    <div class="stats">
+      <span>Holdings <b>${s.n}</b></span>
+      <span>${monthly ? 'Set at rebalance' : 'As of'} <b>${esc(s.basis)}</b></span>
+      <span>${monthly ? 'Added then' : 'New today'} <b>${s.new_count}</b></span>
+      <span>PIT Sharpe <b>${s.pit_sharpe.toFixed(2)}</b></span>
+      <span>PIT CAGR <b>${(s.pit_cagr * 100).toFixed(0)}%</b></span>
+      <span>PIT max drawdown <b>${(s.pit_dd * 100).toFixed(0)}%</b></span>
+    </div>${body}${exits}</div>`;
+}
+
+let priceIndex = {};
+function buildPriceIndex(){
+  priceIndex = {};
+  DATA.monthly.concat(DATA.daily).forEach(s => s.holdings.forEach(h => {
+    priceIndex[h.ticker] = {price: h.price, day_pct: h.day_pct, bse: h.bse};
+  }));
+}
+
+function combinedRows(){
+  const rows = DATA.combined, max = rows.length ? rows[0].weight_pct : 1;
+  return rows.map(r => {
+    const q = quote(priceIndex[r.ticker] || {price: null, day_pct: null, bse: r.bse});
+    const alloc = CAPITAL * r.weight_pct / 100;
+    const shares = q.price ? Math.floor(alloc / q.price) : null;
+    return `<tr><td><b>${esc(r.ticker)}</b></td>
+      <td class="num">${r.weight_pct.toFixed(2)}%</td>
+      <td class="num">${inr(Math.round(alloc))}</td>
+      <td class="num">${q.price ? inr(q.price) + q.src : '—'}</td>
+      <td class="num">${shares === null ? '—' : shares}</td>
+      <td class="num">${r.sleeves}</td>
+      <td style="min-width:120px"><span class="bar" style="width:${(r.weight_pct / max * 100).toFixed(0)}%"></span></td></tr>`;
+  }).join('');
+}
+
+function renderCombined(){
+  $('#tab-combined').innerHTML = `<div class="card">
+    <h3>Combined portfolio</h3>
+    <div class="blurb">Equal capital across all six sleeves, equal weight inside each.
+      Stocks several sleeves agree on get a larger allocation — the diversified version.</div>
+    <div class="calc"><label for="cap">Capital to allocate (₹)</label>
+      <input id="cap" type="number" min="0" step="10000" value="${CAPITAL}">
+      <span style="color:var(--muted);font-size:13px">Shares rounded down at the latest ${EX} close.</span></div>
+    <div class="tablewrap"><table><thead><tr>
+      <th>Stock</th><th class="num">Weight</th><th class="num">Amount</th>
+      <th class="num">${EX} price</th><th class="num">Shares</th><th class="num">Sleeves</th><th></th>
+    </tr></thead><tbody id="combody">${combinedRows()}</tbody></table></div></div>`;
+  $('#cap').oninput = e => {
+    CAPITAL = Math.max(0, Number(e.target.value) || 0);
+    store.set('capital', CAPITAL);
+    $('#combody').innerHTML = combinedRows();
+  };
+}
+
+function businessDaysSince(isoDate){
+  const d = new Date(isoDate + 'T00:00:00'), now = new Date();
+  let n = 0;
+  while (d < now) { d.setDate(d.getDate() + 1); if (d <= now && d.getDay() % 6 !== 0) n++; }
+  return n;
+}
+
+function render(){
+  const d = DATA;
+  $('#sub').textContent = `Data through ${d.asof_pretty} · generated ${d.generated_at}`;
+  $('#mkt').innerHTML = `<span>Nifty <b>${Number(d.nifty).toLocaleString('en-IN')}</b> ${pct(d.nifty_day_pct)}</span>`
+    + (d.vix !== null ? `<span>India VIX <b>${d.vix}</b></span>` : '');
+
+  const lag = businessDaysSince(d.asof);
+  const stale = $('#stale');
+  if (lag > 2) {
+    stale.innerHTML = `<b>These signals may be out of date</b> — data is from ${esc(d.asof_pretty)}
+      (${lag} business days ago). Use <b>Regenerate</b> to run a fresh computation.`;
+    stale.classList.remove('hide');
+  } else {
+    stale.classList.add('hide');
+  }
+
+  const banner = d.is_rebalance_day
+    ? `<div class="banner"><b>Today is a rebalance day.</b> The baskets below are the new month's targets.</div>`
+    : `<div class="banner">These baskets are fixed until the next monthly rebalance on
+       <b>${esc(d.next_rebalance)}</b> (${d.days_to_rebalance} trading day${d.days_to_rebalance === 1 ? '' : 's'} away).
+       Day-to-day they will not change.</div>`;
+  $('#tab-monthly').innerHTML = banner + d.monthly.map(sleeveCard).join('');
+  $('#tab-daily').innerHTML =
+    `<div class="banner">These sleeves re-evaluate every session — entries and exits can
+      change daily. <b>NEW</b> marks a position opened at the latest close.</div>`
+    + d.daily.map(sleeveCard).join('');
+  renderCombined();
+
+  const staleT = d.stale_tickers && d.stale_tickers.length
+    ? `<div style="margin-bottom:8px"><b>Universe note:</b> no recent data for
+       ${d.stale_tickers.map(esc).join(', ')} (delisted or renamed) — excluded from ranking.</div>` : '';
+  $('#foot').innerHTML = staleT + `Signals are computed from NSE data, which is what the
+    strategies were validated on; the BSE view shows the same companies' BSE closes
+    (coverage ${esc(d.bse_coverage || '—')}), falling back to NSE where a BSE quote is missing.
+    "PIT" figures come from the survivorship-corrected re-test on point-in-time Nifty 50
+    membership (2010–2025); costs of 0.10% + 0.05% slippage per side are included, taxes and
+    market impact are not. Regenerates automatically at 19:00 IST on weekdays. Data: Yahoo Finance.`;
+
+  $('#loading').classList.add('hide');
+  $('#views').classList.remove('hide');
+}
+
+function showTab(t){
+  TAB = t;
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  ['monthly', 'daily', 'combined'].forEach(x => $('#tab-' + x).classList.toggle('hide', x !== t));
+}
+
+function setEx(ex){
+  EX = ex;
+  store.set('ex', ex);
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.ex === ex));
+  if (DATA) { render(); showTab(TAB); }
+}
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setEx(b.dataset.ex));
+setEx(EX);
+
+fetch('signals.json', {cache: 'no-store'})
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(d => { DATA = d; buildPriceIndex(); render(); showTab(TAB); })
+  .catch(e => {
+    $('#loading').innerHTML = `<b>No signals published yet.</b><br><span style="font-size:13px">
+      (${esc(e.message)}) — the first workflow run may still be in progress. Try again in a few minutes.</span>`;
+  });
+</script>
+</body>
+</html>

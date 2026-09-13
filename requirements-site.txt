@@ -1,0 +1,4 @@
+# Pinned to the versions the strategies were validated with locally.
+pandas==2.3.3
+numpy==2.4.0
+yfinance==1.5.1

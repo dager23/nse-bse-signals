@@ -1,0 +1,22 @@
+"""Sector map for Nifty 50 constituents (used by rotation & pairs strategies)."""
+SECTOR_MAP = {
+    "RELIANCE.NS": "Energy", "ONGC.NS": "Energy", "BPCL.NS": "Energy", "COALINDIA.NS": "Energy",
+    "NTPC.NS": "Utilities", "POWERGRID.NS": "Utilities",
+    "TCS.NS": "IT", "INFY.NS": "IT", "WIPRO.NS": "IT", "HCLTECH.NS": "IT", "TECHM.NS": "IT",
+    "HDFCBANK.NS": "Banks", "ICICIBANK.NS": "Banks", "SBIN.NS": "Banks", "KOTAKBANK.NS": "Banks",
+    "AXISBANK.NS": "Banks", "INDUSINDBK.NS": "Banks",
+    "BAJFINANCE.NS": "NBFC", "BAJAJFINSV.NS": "NBFC", "SHRIRAMFIN.NS": "NBFC",
+    "SBILIFE.NS": "Insurance", "HDFCLIFE.NS": "Insurance",
+    "HINDUNILVR.NS": "FMCG", "ITC.NS": "FMCG", "NESTLEIND.NS": "FMCG", "BRITANNIA.NS": "FMCG",
+    "TATACONSUM.NS": "FMCG",
+    "MARUTI.NS": "Auto", "M&M.NS": "Auto", "TATAMOTORS.NS": "Auto", "HEROMOTOCO.NS": "Auto",
+    "EICHERMOT.NS": "Auto", "BAJAJ-AUTO.NS": "Auto",
+    "SUNPHARMA.NS": "Pharma", "DRREDDY.NS": "Pharma", "CIPLA.NS": "Pharma", "DIVISLAB.NS": "Pharma",
+    "APOLLOHOSP.NS": "Pharma",
+    "TATASTEEL.NS": "Metals", "JSWSTEEL.NS": "Metals", "HINDALCO.NS": "Metals",
+    "ULTRACEMCO.NS": "Cement", "GRASIM.NS": "Cement",
+    "LT.NS": "Infra", "ADANIENT.NS": "Infra", "ADANIPORTS.NS": "Infra",
+    "BHARTIARTL.NS": "Telecom",
+    "ASIANPAINT.NS": "Consumer", "TITAN.NS": "Consumer",
+    "UPL.NS": "Chemicals",
+}

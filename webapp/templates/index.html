@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NSE Signals</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#14181f; --muted:#697386; --line:#e3e6ec;
+    --accent:#2b5cd9; --accent-soft:#eaf0ff; --up:#0a7d4a; --dn:#c02525;
+    --warn-bg:#fff8e6; --warn-line:#f0d99b; --warn-ink:#7a5c12;
+    --chip:#f0f2f6; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.05);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1216; --card:#171b22; --ink:#e7eaf0; --muted:#98a1b3; --line:#262c37;
+      --accent:#6b91ff; --accent-soft:#1b2437; --up:#3ecf8e; --dn:#ff6b6b;
+      --warn-bg:#2a2312; --warn-line:#4d4225; --warn-ink:#e8cf90;
+      --chip:#222834; --shadow:none;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+    justify-content:space-between;margin-bottom:6px}
+  h1{font-size:20px;margin:0;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .mkt{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px}
+  .mkt b{font-weight:600}
+  .up{color:var(--up)} .dn{color:var(--dn)}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);padding:8px 14px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:disabled{opacity:.55;cursor:default}
+  nav{display:flex;gap:4px;margin:18px 0;border-bottom:1px solid var(--line)}
+  nav button{border:0;background:none;border-radius:0;padding:9px 14px;
+    color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
+  nav button.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px;
+    flex-wrap:wrap}
+  .tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;
+    background:var(--accent-soft);color:var(--accent);letter-spacing:.02em}
+  .tag.grey{background:var(--chip);color:var(--muted)}
+  .blurb{color:var(--muted);font-size:13px;margin:6px 0 12px}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);
+    margin-bottom:12px}
+  .stats b{color:var(--ink);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--chip);border:1px solid transparent;border-radius:8px;
+    padding:6px 10px;font-size:13px;display:flex;gap:7px;align-items:baseline}
+  .chip.new{border-color:var(--accent);background:var(--accent-soft)}
+  .chip .t{font-weight:600}
+  .chip .p{color:var(--muted);font-size:12px}
+  .flat{color:var(--muted);font-style:italic;font-size:13px}
+  .exits{margin-top:10px;font-size:12px;color:var(--muted)}
+  .banner{background:var(--accent-soft);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:14px}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);
+    color:var(--warn-ink);border-radius:10px;padding:12px 16px;font-size:13px;
+    margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;
+    letter-spacing:.03em}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{height:6px;background:var(--accent);border-radius:3px;display:inline-block;
+    vertical-align:middle}
+  .load{text-align:center;padding:56px 20px;color:var(--muted)}
+  .spin{width:26px;height:26px;border:3px solid var(--line);
+    border-top-color:var(--accent);border-radius:50%;margin:0 auto 14px;
+    animation:s .8s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  footer{margin-top:28px;color:var(--muted);font-size:12px;line-height:1.65}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>NSE Strategy Signals</h1>
+      <div class="sub" id="sub">Loading…</div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="mkt" id="mkt"></div>
+      <button class="primary" id="refresh">Refresh</button>
+    </div>
+  </header>
+
+  <div class="warn">
+    <b>Research output, not investment advice.</b> These are rule-based baskets
+    from a backtesting study. Performance figures shown are
+    survivorship-corrected (point-in-time index membership) and are far more
+    modest than raw backtests suggest. Past results do not predict future
+    returns — you can lose money on any of these.
+  </div>
+
+  <nav>
+    <button data-tab="monthly" class="on">Monthly portfolio</button>
+    <button data-tab="daily">Today's signals</button>
+    <button data-tab="combined">Combined</button>
+  </nav>
+
+  <div id="loading" class="load"><div class="spin"></div>
+    <div id="loadmsg">Fetching market data…</div>
+    <div style="font-size:12px;margin-top:6px">First run takes 1–2 minutes</div>
+  </div>
+  <div id="views" class="hide">
+    <div id="tab-monthly"></div>
+    <div id="tab-daily" class="hide"></div>
+    <div id="tab-combined" class="hide"></div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let DATA = null, TAB = 'monthly', poll = null;
+
+function pct(v){ if(v===null||v===undefined) return '—';
+  const c = v>0?'up':(v<0?'dn':''); const s = v>0?'+':'';
+  return `<span class="${c}">${s}${v.toFixed(2)}%</span>`; }
+
+function chip(h){
+  return `<div class="chip ${h.is_new?'new':''}">
+    <span class="t">${h.ticker}</span>
+    <span class="p">${h.price!==null?'₹'+h.price.toLocaleString('en-IN'):''}
+      ${h.day_pct!==null?pct(h.day_pct):''}</span>
+    ${h.is_new?'<span class="tag">NEW</span>':''}</div>`;
+}
+
+function sleeveCard(s){
+  const perf = s.pit_sharpe >= 0.5
+    ? `<span class="tag">survives PIT test</span>` : `<span class="tag grey">weak on PIT data</span>`;
+  const monthly = s.kind === 'monthly';
+  const body = s.n
+    ? `<div class="chips">${s.holdings.map(chip).join('')}</div>`
+    : `<div class="flat">Currently flat — no positions signalled.</div>`;
+  const exits = s.exits.length
+    ? `<div class="exits">${monthly ? 'Dropped at that rebalance' : 'Exited since previous session'}:
+       ${s.exits.join(', ')}</div>` : '';
+  return `<div class="card">
+    <h3>${s.label} ${perf}</h3>
+    <div class="blurb">${s.blurb}</div>
+    <div class="stats">
+      <span>Holdings <b>${s.n}</b></span>
+      <span>${monthly ? 'Set at rebalance' : 'As of'} <b>${s.basis}</b></span>
+      <span>${monthly ? 'Added then' : 'New today'} <b>${s.new_count}</b></span>
+      <span>PIT Sharpe <b>${s.pit_sharpe.toFixed(2)}</b></span>
+      <span>PIT CAGR <b>${(s.pit_cagr*100).toFixed(0)}%</b></span>
+      <span>PIT max drawdown <b>${(s.pit_dd*100).toFixed(0)}%</b></span>
+    </div>${body}${exits}</div>`;
+}
+
+function render(){
+  const d = DATA; if(!d) return;
+  $('#sub').textContent = `Data through ${d.asof_pretty} · ${d.n_tickers} stocks · generated ${d.generated_at}`;
+  $('#mkt').innerHTML = `<span>Nifty <b>${d.nifty.toLocaleString('en-IN')}</b> ${pct(d.nifty_day_pct)}</span>`
+    + (d.vix!==null?`<span>VIX <b>${d.vix}</b></span>`:'');
+
+  const banner = d.is_rebalance_day
+    ? `<div class="banner"><b>Today is a rebalance day.</b> The baskets below are the new month's targets.</div>`
+    : `<div class="banner">These baskets are fixed until the next monthly rebalance on
+       <b>${d.next_rebalance}</b> (${d.days_to_rebalance} trading day${d.days_to_rebalance===1?'':'s'} away).
+       Day-to-day they will not change.</div>`;
+  $('#tab-monthly').innerHTML = banner + d.monthly.map(sleeveCard).join('');
+
+  $('#tab-daily').innerHTML =
+    `<div class="banner">These sleeves re-evaluate every session — entries and exits
+      can change daily. <b>NEW</b> marks a position opened at the latest close.</div>`
+    + d.daily.map(sleeveCard).join('');
+
+  const max = d.combined.length ? d.combined[0].weight_pct : 1;
+  $('#tab-combined').innerHTML = `<div class="card">
+    <h3>Combined meta-portfolio</h3>
+    <div class="blurb">Equal capital across all six sleeves, equal weight inside each.
+      A stock held by several sleeves gets a larger allocation. This is the
+      diversified version — structurally steadier than any single sleeve.</div>
+    <table><thead><tr><th>Stock</th><th class="num">Weight</th>
+      <th class="num">Sleeves</th><th style="width:38%"></th></tr></thead><tbody>
+    ${d.combined.map(r=>`<tr><td><b>${r.ticker}</b></td>
+      <td class="num">${r.weight_pct.toFixed(2)}%</td>
+      <td class="num">${r.sleeves}</td>
+      <td><span class="bar" style="width:${(r.weight_pct/max*100).toFixed(0)}%"></span></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+
+  const stale = d.stale_tickers && d.stale_tickers.length
+    ? `<div style="margin-bottom:8px"><b>Universe note:</b> no recent data for
+       ${d.stale_tickers.join(', ')} (delisted or renamed ticker) — excluded from
+       today's ranking.</div>` : '';
+  $('#foot').innerHTML = stale + `Champion = 50% low-beta + 30% 12-month momentum + 20% one-month
+    reversal, top 10, monthly. "PIT" figures come from the survivorship-corrected
+    re-test on point-in-time Nifty 50 membership (2010–2025), the honest view: the
+    backfilled-universe numbers were roughly 0.4 Sharpe higher across the board.
+    Costs of 0.10% + 0.05% slippage per side are included in those figures; taxes
+    and market impact are not. Data: Yahoo Finance.`;
+
+  $('#loading').classList.add('hide');
+  $('#views').classList.remove('hide');
+}
+
+function showTab(t){
+  TAB = t;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.tab===t));
+  ['monthly','daily','combined'].forEach(x=>
+    $('#tab-'+x).classList.toggle('hide', x!==t));
+}
+
+async function tick(){
+  const r = await fetch('/api/signals'); const s = await r.json();
+  if(s.status==='running'){
+    $('#loading').classList.remove('hide');
+    $('#loadmsg').textContent = `Fetching market data… ${s.elapsed||0}s`;
+    $('#refresh').disabled = true;
+    if(!DATA) $('#views').classList.add('hide');
+    return;
+  }
+  $('#refresh').disabled = false;
+  if(s.status==='error'){
+    $('#loading').classList.remove('hide');
+    $('#loading').innerHTML = `<div style="color:var(--dn)"><b>Failed to compute signals</b><br>
+      <code style="font-size:12px">${s.message}</code><br><br>
+      <button class="primary" onclick="location.reload()">Retry</button></div>`;
+    clearInterval(poll); poll=null; return;
+  }
+  if(s.status==='ok' && s.data){
+    const changed = !DATA || DATA.generated_at !== s.data.generated_at;
+    DATA = s.data;
+    if(changed){ render(); showTab(TAB); }
+    if(poll){ clearInterval(poll); poll=null; }
+  }
+}
+
+$('#refresh').onclick = async () => {
+  $('#refresh').disabled = true;
+  await fetch('/api/refresh?force=1', {method:'POST'});
+  if(!poll) poll = setInterval(tick, 1500);
+  tick();
+};
+document.querySelectorAll('nav button').forEach(b=>
+  b.onclick = ()=>showTab(b.dataset.tab));
+
+tick();
+poll = setInterval(tick, 1500);
+</script>
+</body>
+</html>
