@@ -21,7 +21,8 @@ Actions and the page displays its latest result:
    (the site's *Regenerate* button links straight there).
 2. Wait ~2–3 minutes for it to finish; reload the site.
 
-It also runs automatically at 19:00 IST every weekday.
+It also runs automatically at 19:00 IST every weekday, and redeploys
+whenever the site code (`site/`, `build_site.py`, `webapp/engine.py`) changes on `main`.
 
 ## What the site shows
 

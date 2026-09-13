@@ -6,6 +6,14 @@ on:
     # Yahoo has settled the day's bars. GitHub may delay scheduled runs.
     - cron: "30 13 * * 1-5"
   workflow_dispatch:   # on-demand: Actions tab -> "Run workflow"
+  push:                # redeploy when the site or its engine changes
+    branches: [main]
+    paths:
+      - "site/**"
+      - "build_site.py"
+      - "webapp/engine.py"
+      - "requirements-site.txt"
+      - ".github/workflows/pages.yml"
 
 permissions:
   contents: read
